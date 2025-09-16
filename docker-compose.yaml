@@ -1,0 +1,73 @@
+services:
+  jaeger:
+    image: jaegertracing/all-in-one:1.57
+    container_name: jaeger
+    ports:
+      - "16686:16686"  # UI
+      - "4317:4317"    # OTLP gRPC
+    networks:
+      - otel-network
+    volumes:
+      - jaeger_data:/badger
+    user: "0:0" 
+    environment:
+      - SPAN_STORAGE_TYPE=badger
+      - BADGER_EPHEMERAL=false
+      - BADGER_DIRECTORY_VALUE=/badger/data
+      - BADGER_DIRECTORY_KEY=/badger/
+      - COLLECTOR_OTLP_ENABLED=true 
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.140.0
+    container_name: otel-collector
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    command: ["--config", "/etc/otel-collector-config.yaml"]
+    ports:
+      - "14317:4317"  # OTLP gRPC for services
+      - "4318:4318"  # OTLP HTTP
+      - "8888:8888"  # Collector metrics
+      - "13133:13133" # Health check
+      - "55679:55679"
+    networks:
+      - otel-network
+    depends_on:
+      - jaeger
+
+  demo-service:
+    build: ./demo-service
+    container_name: demo-service
+    ports:
+      - "8000:8000"
+    networks:
+      - otel-network
+    depends_on:
+      - otel-collector
+    environment:
+      - OTEL_SERVICE_NAME=demo-service
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_LOG_LEVEL=debug
+      - OTEL_TRACES_EXPORTER=otlp
+      - OTEL_METRICS_EXPORTER=otlp
+      - OTEL_LOGS_EXPORTER=otlp
+      - OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST=x-test-request
+
+  loadgen:
+    build: ./loadgen
+    container_name: loadgen
+    command: python -u loadgen.py   # 👈 add -u
+    environment:
+      - TOTAL_REQUESTS=200
+      - SERVICE_NAME=demo-service
+    networks:
+      - otel-network
+    depends_on:
+      - demo-service
+      - otel-collector
+    profiles: ["manual"]
+networks:
+  otel-network:
+    driver: bridge
+volumes:
+  jaeger_data:

@@ -1,0 +1,70 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch: {}
+
+  tail_sampling:
+    decision_wait: 10s
+    num_traces: 10000
+    expected_new_traces_per_sec: 100
+    policies:
+      # Case 1: header == performance → 50% sample
+      - name: performance-50
+        type: and
+        and:
+          and_sub_policy:
+            - type: string_attribute
+              string_attribute:
+                key: http.request.header.x_test_request
+                values: ["performance"]
+            - type: probabilistic
+              probabilistic:
+                sampling_percentage: 50
+
+      # Case 2: everything else → 100%
+      - name: default-100
+        type: probabilistic
+        probabilistic:
+          sampling_percentage: 100
+
+exporters:
+  otlp:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+  debug:
+    verbosity: detailed
+
+extensions:
+  health_check: {}
+  pprof: {}
+  zpages: {}
+
+service:
+  telemetry:
+    logs:
+      level: debug
+
+  extensions: [health_check, pprof, zpages]
+
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [tail_sampling, batch]
+      exporters: [otlp, debug]
+
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
+
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]

@@ -1,0 +1,30 @@
+commands to run this repo code:
+
+docker compose up -d → starts only demo-service, otel-collector, jaeger
+docker exec -it jaeger rm -rf /badger/data/*   // to run just clear the jaeger trace storage 
+docker restart jaeger
+docker restart otel-collector  // it is for to reset the otel-collector 
+
+docker compose --profile manual build --no-cache  (build not from cache) 
+docker compose --profile manual up -d loadgen → starts loadgen when you want
+docker compose run --rm loadgen    (to run specific container also show logs on console)
+docker compose logs -f loadgen
+
+
+docker compose down -v   (stop all conatiners)
+docker rm loadgen
+docker compose ps -a ( to check service status up/exited)
+
+---------------------------------------------------------------------------------
+
+
+* there are two otel-collector-config files*
+1 otel-collector-config-headbased.yaml -  this configuration is head based sampling policy 
+2 otel-collector-config-tailsampling.yaml - this configuration use tailsampling policy
+
+
+to use which ever sampling policy copy that in otel-collector-config.yaml. then run below commands
+docker compose up -d --force-recreate otel-collector
+docker compose run --rm loadgen  || docker compose --profile manual up -d loadgen
+
+

@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+requests
+
+# OTel core
+opentelemetry-distro
+opentelemetry-exporter-otlp
+
+# Instrumentations
+opentelemetry-instrumentation-fastapi
+opentelemetry-instrumentation-requests

@@ -1,0 +1,61 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  # Filter for performance requests
+  filter/performance:
+    error_mode: ignore
+    traces:
+      span:
+        - 'attributes["http.request.header.x_test_request"] == "performance"'
+
+  probabilistic_sampler/50:
+    sampling_percentage: 50
+
+  # Filter for non-performance requests
+  filter/non_perf:
+    error_mode: ignore
+    traces:
+      span:
+        - 'attributes["http.request.header.x_test_request"] != "performance"'
+
+  probabilistic_sampler/100:
+    sampling_percentage: 100
+
+  batch: {}
+
+exporters:
+  otlp:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+  debug:
+    verbosity: detailed
+
+extensions:
+  health_check: {}
+  pprof: {}
+  zpages: {}
+
+service:
+  telemetry:
+    logs:
+      level: debug
+
+  extensions: [health_check, pprof, zpages]
+
+  pipelines:
+    traces/performance:
+      receivers: [otlp]
+      processors: [filter/performance, probabilistic_sampler/50, batch]
+      exporters: [otlp, debug]
+
+    traces/non_perf:
+      receivers: [otlp]
+      processors: [filter/non_perf, probabilistic_sampler/100, batch]
+      exporters: [otlp, debug]
