@@ -7,8 +7,11 @@ docker restart otel-collector  // it is for to reset the otel-collector
 
 docker compose --profile manual build --no-cache  (build not from cache) 
 docker compose --profile manual up -d loadgen → starts loadgen when you want
-docker compose run --rm loadgen    (to run specific container also show logs on console)
+docker compose run --rm loadgen    (to run specific container  also show logs on console)
 docker compose logs -f loadgen
+
+to see results in jaeger UI: http://localhost:16686/search
+to see results in otel-collector UI: http://localhost:8888/metrics
 
 
 docker compose down -v   (stop all conatiners)

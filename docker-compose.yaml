@@ -18,7 +18,7 @@ services:
       - COLLECTOR_OTLP_ENABLED=true 
 
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.140.0
+    image: otel/opentelemetry-collector-contrib:0.130.1
     container_name: otel-collector
     volumes:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro

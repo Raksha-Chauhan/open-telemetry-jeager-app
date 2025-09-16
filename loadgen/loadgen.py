@@ -95,19 +95,21 @@ if __name__ == "__main__":
     sent = send_requests()
     traces = fetch_jaeger_traces()
 
-    print("\n📊 Sampling Report")
-    print("-------------------------------------------------------------")
-    print(f"{'Category':<20} | {'Sent':<6} | {'Stored':<7} | {'Rate':<7}")
-    print("-------------------------------------------------------------")
+    #commenting out the report printing for now as its not giving correct results, need to debug further
 
-    for k in sent.keys():
-        total = sent[k]
-        stored = traces.get(k, 0)
-        rate = (stored / total * 100) if total > 0 else 0
-        print(f"{k:<20} | {total:<6} | {stored:<7} | {rate:>6.2f}%")
+    # print("\n📊 Sampling Report")
+    # print("-------------------------------------------------------------")
+    # print(f"{'Category':<20} | {'Sent':<6} | {'Stored':<7} | {'Rate':<7}")
+    # print("-------------------------------------------------------------")
 
-    print("-------------------------------------------------------------")
-    total_sent = sum(sent.values())
-    total_stored = sum(traces.values())
-    overall_rate = (total_stored / total_sent * 100) if total_sent > 0 else 0
-    print(f"{'TOTAL':<20} | {total_sent:<6} | {total_stored:<7} | {overall_rate:>6.2f}%")
+    # for k in sent.keys():
+    #     total = sent[k]
+    #     stored = traces.get(k, 0)
+    #     rate = (stored / total * 100) if total > 0 else 0
+    #     print(f"{k:<20} | {total:<6} | {stored:<7} | {rate:>6.2f}%")
+
+    # print("-------------------------------------------------------------")
+    # total_sent = sum(sent.values())
+    # total_stored = sum(traces.values())
+    # overall_rate = (total_stored / total_sent * 100) if total_sent > 0 else 0
+    # print(f"{'TOTAL':<20} | {total_sent:<6} | {total_stored:<7} | {overall_rate:>6.2f}%")
